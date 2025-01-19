@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Detail</title>
+    <link rel="stylesheet" href="siteweb.css">
+    
+</head>
+<body>
+    <header>
+        <h1>4U</h1>
+        <nav>
+            <ul>
+                <li><a href="test2.html">Accueil</a></li>
+                <li><a href="t-shirt.html">T-Shirts</a></li>
+                <li><a href="hoodie.html">Hoodie</a></li>
+                <li><a href="pants.html">Pants</a></li>
+            </ul>
+            <form>
+                <input type="text" id="search-bar" placeholder="Search...">
+            </form>
+        </nav>
+    </header>
+    <main>
+        <div class="product-detail">
+            <img src="hoodie1.jpg" alt="Product Image">
+            <h2 id="product-name">Cool Hoodie</h2>
+            <p id="product-description">A stylish and comfortable hoodie for all seasons.</p>
+            <p id="product-price">Price: $19.99</p>
+            <button id="add-to-cart">Add to Cart</button>
+            <button id="clear-cart">Clear Cart</button>
+        </div>
+        <section id="cart">
+            <h2>Shopping Cart</h2>
+            <ul id="cart-items"></ul>
+        </section>
+    </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const addToCartBtn = document.getElementById('add-to-cart');
+            const clearCartBtn = document.getElementById('clear-cart');
+            const cartItemsList = document.getElementById('cart-items');
+            const productName = document.getElementById('product-name').textContent;
+            const productPrice = document.getElementById('product-price').textContent;
+
+            function loadCart() {
+                cartItemsList.innerHTML = '';
+                const cart = JSON.parse(localStorage.getItem('cart')) || [];
+                cart.forEach((item, index) => {
+                    const li = document.createElement('li');
+                    li.textContent = `${item.name} - ${item.price}`;
+                    const removeBtn = document.createElement('button');
+                    removeBtn.textContent = 'Remove';
+                    removeBtn.onclick = () => removeFromCart(index);
+                    li.appendChild(removeBtn);
+                    cartItemsList.appendChild(li);
+                });
+            }
+
+            function addToCart() {
+                const cart = JSON.parse(localStorage.getItem('cart')) || [];
+                cart.push({ name: productName, price: productPrice });
+                localStorage.setItem('cart', JSON.stringify(cart));
+                loadCart();
+            }
+
+            function removeFromCart(index) {
+                const cart = JSON.parse(localStorage.getItem('cart')) || [];
+                cart.splice(index, 1);
+                localStorage.setItem('cart', JSON.stringify(cart));
+                loadCart();
+            }
+
+            function clearCart() {
+                localStorage.removeItem('cart');
+                loadCart();
+            }
+
+            addToCartBtn.addEventListener('click', addToCart);
+            clearCartBtn.addEventListener('click', clearCart);
+
+            loadCart();
+        });
+    </script>
+</body>
+</html>
+

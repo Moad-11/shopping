@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment</title>
+    <link rel="stylesheet" href="chek.css">
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+    <h1>Checkout</h1>
+
+    <!-- Payment Form -->
+    <form id="payment-form">
+        <div class="form-group">
+            <label for="card-element">Credit or Debit Card</label>
+            <!-- A Stripe Element will be inserted here. -->
+            <div id="card-element">
+                <!-- A Stripe Element will be inserted here. -->
+            </div>
+            <!-- Used to display form errors. -->
+            <div id="card-errors" role="alert"></div>
+        </div>
+
+        <button type="submit">Pay Now</button>
+    </form>
+
+    <script>
+        // Replace 'YOUR_STRIPE_PUBLIC_KEY' with your actual Stripe public key
+        const stripe = Stripe('YOUR_STRIPE_PUBLIC_KEY');
+        const elements = stripe.elements();
+
+        // Create an instance of the card Element.
+        const cardElement = elements.create('card');
+
+        // Mount the card Element to the #card-element div
+        cardElement.mount('#card-element');
+
+        const form = document.getElementById('payment-form');
+
+        // Handle form submission
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            // Create a PaymentMethod with the card details
+            const { paymentMethod, error } = await stripe.createPaymentMethod({
+                type: 'card',
+                card: cardElement,
+            });
+
+            if (error) {
+                // Display error to the user
+                const errorElement = document.getElementById('card-errors');
+                errorElement.textContent = error.message;
+            } else {
+                // Send the PaymentMethod to your server to create a PaymentIntent
+                const paymentIntentResponse = await fetch('/create-payment-intent', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ payment_method: paymentMethod.id }),
+                });
+
+                const { clientSecret } = await paymentIntentResponse.json();
+
+                // Confirm the payment with the client secret
+                const { paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+                    payment_method: paymentMethod.id,
+                });
+
+                if (paymentIntent.status === 'succeeded') {
+                    // Payment successful
+                    console.log('Payment successful');
+                    // Redirect to success page or display success message
+                    window.location.href = '/success'; // Replace with your success page URL
+                } else {
+                    // Payment failed
+                    console.error('Payment failed');
+                    alert('Payment failed. Please try again.');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
